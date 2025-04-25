@@ -4,82 +4,133 @@ import java.awt.event.ActionListener;
 import java.util.Map;
 
 public class PredictorGUI extends JFrame {
-    //GUI components
+    //Prediction section components
+    JLabel titlePredictLabel = new JLabel("Predict Engine Status:");
     JLabel ignitionLabel = new JLabel("Ignition:");
     JLabel fuelLevelLabel = new JLabel("Fuel Level:");
     JLabel batteryChargedLabel = new JLabel("Battery Charged:");
     JLabel oilLevelLabel = new JLabel("Oil Level:");
 
-    //Boxes for feature selection
+    //Prediction dropdown boxes
     JComboBox<String> ignitionComboBox = new JComboBox<>(new String[]{"Yes", "No"});
     JComboBox<String> fuelLevelComboBox = new JComboBox<>(new String[]{"Yes", "No"});
     JComboBox<String> batteryChargedComboBox = new JComboBox<>(new String[]{"Yes", "No"});
     JComboBox<String> oilLevelComboBox = new JComboBox<>(new String[]{"Yes", "No"});
 
-    //Button
+    //Add data section components (separate from prediction)
+    JLabel titleAddDataLabel = new JLabel("Add New Data Point:");
+    JLabel newIgnitionLabel = new JLabel("Ignition:");
+    JLabel newFuelLevelLabel = new JLabel("Fuel Level:");
+    JLabel newBatteryChargedLabel = new JLabel("Battery Charged:");
+    JLabel newOilLevelLabel = new JLabel("Oil Level:");
+    JLabel newEngineRunningLabel = new JLabel("Engine Running:");
+
+    //Add data dropdown boxes
+    JComboBox<String> newIgnitionComboBox = new JComboBox<>(new String[]{"Yes", "No"});
+    JComboBox<String> newFuelLevelComboBox = new JComboBox<>(new String[]{"Yes", "No"});
+    JComboBox<String> newBatteryChargedComboBox = new JComboBox<>(new String[]{"Yes", "No"});
+    JComboBox<String> newOilLevelComboBox = new JComboBox<>(new String[]{"Yes", "No"});
+    JComboBox<String> newEngineRunningComboBox = new JComboBox<>(new String[]{"Yes", "No"});
+
+    //Buttons
     JButton predictButton = new JButton("Predict");
     JButton loadFileButton = new JButton("Load Data");
     JButton trainButton = new JButton("Train Model");
+    JButton addDataButton = new JButton("Add Data");
 
-    //Result labels
+    //Result and status labels
     JLabel resultLabel = new JLabel("Prediction: ");
     JLabel probabilityLabel = new JLabel("Probability: ");
     JLabel statusLabel = new JLabel("Status: Ready");
     JLabel filePathLabel = new JLabel("No file loaded");
+    JLabel dataCountLabel = new JLabel("Data points: 0");
 
     public PredictorGUI() {
-        // Set up the JFrame
+        //Set up the JFrame
         setTitle("Engine Predictor");
-        setSize(500, 400);
+        setSize(500, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        //Create panel
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(10, 2));
+        //Create the main panel
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-        //Add components to panel
-        panel.add(ignitionLabel);
-        panel.add(ignitionComboBox);
+        //Prediction
+        JPanel predictionPanel = new JPanel(new GridLayout(6, 2, 5, 5));
+        predictionPanel.setBorder(BorderFactory.createTitledBorder("Prediction"));
 
-        panel.add(fuelLevelLabel);
-        panel.add(fuelLevelComboBox);
+        predictionPanel.add(ignitionLabel);
+        predictionPanel.add(ignitionComboBox);
 
-        panel.add(batteryChargedLabel);
-        panel.add(batteryChargedComboBox);
+        predictionPanel.add(fuelLevelLabel);
+        predictionPanel.add(fuelLevelComboBox);
 
-        panel.add(oilLevelLabel);
-        panel.add(oilLevelComboBox);
+        predictionPanel.add(batteryChargedLabel);
+        predictionPanel.add(batteryChargedComboBox);
 
-        panel.add(predictButton);
-        panel.add(new JLabel());
+        predictionPanel.add(oilLevelLabel);
+        predictionPanel.add(oilLevelComboBox);
 
-        panel.add(resultLabel);
-        panel.add(new JLabel());
+        predictionPanel.add(predictButton);
+        predictionPanel.add(new JLabel());
 
-        panel.add(probabilityLabel);
+        predictionPanel.add(resultLabel);
+        predictionPanel.add(probabilityLabel);
 
-        panel.add(new JLabel("Training Data:"));
-        panel.add(filePathLabel);
+        //Data
+        JPanel addDataPanel = new JPanel(new GridLayout(6, 2, 5, 5));
+        addDataPanel.setBorder(BorderFactory.createTitledBorder("Add New Data"));
 
-        panel.add(loadFileButton);
-        panel.add(trainButton);
+        addDataPanel.add(newIgnitionLabel);
+        addDataPanel.add(newIgnitionComboBox);
 
-        panel.add(statusLabel);
-        panel.add(new JLabel());
+        addDataPanel.add(newFuelLevelLabel);
+        addDataPanel.add(newFuelLevelComboBox);
 
-        //Add panel to frame
-        add(panel);
+        addDataPanel.add(newBatteryChargedLabel);
+        addDataPanel.add(newBatteryChargedComboBox);
+
+        addDataPanel.add(newOilLevelLabel);
+        addDataPanel.add(newOilLevelComboBox);
+
+        addDataPanel.add(newEngineRunningLabel);
+        addDataPanel.add(newEngineRunningComboBox);
+
+        addDataPanel.add(addDataButton);
+        addDataPanel.add(dataCountLabel);
+
+        //Training
+        JPanel trainingPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        trainingPanel.setBorder(BorderFactory.createTitledBorder("Training"));
+
+        trainingPanel.add(new JLabel("File:"));
+        trainingPanel.add(filePathLabel);
+
+        trainingPanel.add(loadFileButton);
+        trainingPanel.add(trainButton);
+
+        trainingPanel.add(new JLabel("Status:"));
+        trainingPanel.add(statusLabel);
+
+        //Add all panels to main panel
+        mainPanel.add(predictionPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacing
+        mainPanel.add(addDataPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacing
+        mainPanel.add(trainingPanel);
+
+        //Add main panel to frame
+        add(new JScrollPane(mainPanel));
 
         //Display the frame
         setVisible(true);
     }
 
-    // Add action listener to predict button
+    //Add action listeners
     public void addPredictListener(ActionListener listener) {
         predictButton.addActionListener(listener);
     }
 
-    //Add action listener to train and load file buttons
     public void addTrainListener(ActionListener listener) {
         trainButton.addActionListener(listener);
     }
@@ -88,7 +139,11 @@ public class PredictorGUI extends JFrame {
         loadFileButton.addActionListener(listener);
     }
 
-    //Get values from boxes
+    public void addAddDataListener(ActionListener listener) {
+        addDataButton.addActionListener(listener);
+    }
+
+    //Get values from prediction dropdown boxes
     public String getIgnition() {
         return (String) ignitionComboBox.getSelectedItem();
     }
@@ -103,6 +158,27 @@ public class PredictorGUI extends JFrame {
 
     public String getOilLevel() {
         return (String) oilLevelComboBox.getSelectedItem();
+    }
+
+    //Get values from add data dropdown boxes
+    public String getNewIgnition() {
+        return (String) newIgnitionComboBox.getSelectedItem();
+    }
+
+    public String getNewFuelLevel() {
+        return (String) newFuelLevelComboBox.getSelectedItem();
+    }
+
+    public String getNewBatteryCharged() {
+        return (String) newBatteryChargedComboBox.getSelectedItem();
+    }
+
+    public String getNewOilLevel() {
+        return (String) newOilLevelComboBox.getSelectedItem();
+    }
+
+    public String getNewEngineRunning() {
+        return (String) newEngineRunningComboBox.getSelectedItem();
     }
 
     //Update result display
@@ -122,13 +198,24 @@ public class PredictorGUI extends JFrame {
         );
     }
 
+    //Update status display
     public void updateStatus(String status) {
-        statusLabel.setText("Status: " + status);
+        statusLabel.setText(status);
     }
 
     //Update file path display
     public void updateFilePath(String path) {
+        if (path.length() > 30) {
+            // If path is too long, show only beginning and end
+            path = path.substring(0, 15) + "..." +
+                    path.substring(path.length() - 15);
+        }
         filePathLabel.setText(path);
+    }
+
+    //Update data count
+    public void updateDataCount(int count) {
+        dataCountLabel.setText("Data points: " + count);
     }
 
     //Show file chooser dialog
@@ -143,7 +230,7 @@ public class PredictorGUI extends JFrame {
         return null;
     }
 
-    // Show probability table in popup - simplified version
+    //Show probability table in popup
     public void showProbabilityTable(Map<String, Double> probabilities) {
         StringBuilder tableContent = new StringBuilder();
         tableContent.append("Probability Table:\n\n");
@@ -168,4 +255,3 @@ public class PredictorGUI extends JFrame {
         );
     }
 }
-

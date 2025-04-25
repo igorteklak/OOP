@@ -11,10 +11,11 @@ public class Control implements ActionListener {
         model = new PredictorModel();
         gui = new PredictorGUI();
 
-        //Set up the action listener for the predict button
+        //Set up the action listeners
         gui.addPredictListener(this);
         gui.addTrainListener(this);
         gui.addLoadFileListener(this);
+        gui.addAddDataListener(this);
     }
 
     @Override
@@ -25,10 +26,12 @@ public class Control implements ActionListener {
             handleTrain();
         } else if (e.getSource() == gui.loadFileButton) {
             handleLoadFile();
+        } else if (e.getSource() == gui.addDataButton) {
+            handleAddData();
         }
     }
 
-    //Handle predict button click
+    // Handle predict button click
     private void handlePredict() {
         //Get the selected values from the GUI
         String ignition = gui.getIgnition();
@@ -39,7 +42,7 @@ public class Control implements ActionListener {
         //Make the prediction using the model
         PredictorModel.PredictionResult result = model.predict(ignition, fuelLevel, batteryCharged, oilLevel);
 
-        //Check if prediction is valid
+        //Check if we have a valid prediction
         if (result.getPrediction().equals("Unknown")) {
             gui.updateStatus("Error: No data available for this combination");
             return;
@@ -54,8 +57,8 @@ public class Control implements ActionListener {
 
     //Handle train button click
     private void handleTrain() {
-        if (trainingFilePath == null || trainingFilePath.isEmpty()) {
-            gui.updateStatus("Error: No training file loaded");
+        if (trainingFilePath == null && model.getTrainingDataSize() == 0) {
+            gui.updateStatus("Error: No training data loaded or added");
             return;
         }
 
@@ -67,6 +70,7 @@ public class Control implements ActionListener {
         if (success) {
             int dataSize = model.getTrainingDataSize();
             gui.updateStatus("Model trained successfully with " + dataSize + " data points");
+            gui.updateDataCount(dataSize);
 
             //Show probability table
             gui.showProbabilityTable(model.getAllProbabilities());
@@ -75,7 +79,7 @@ public class Control implements ActionListener {
         }
     }
 
-    // New for Level 2: Handle load file button click
+    //Handle load file button click
     private void handleLoadFile() {
         String filePath = gui.showFileChooser();
 
@@ -84,16 +88,41 @@ public class Control implements ActionListener {
             gui.updateFilePath(filePath);
             gui.updateStatus("Loading training data...");
 
-            // Load training data
+            //Load training data
             boolean success = model.loadTrainingData(filePath);
 
             if (success) {
                 int dataSize = model.getTrainingDataSize();
                 gui.updateStatus("Loaded " + dataSize + " training data points");
+                gui.updateDataCount(dataSize);
             } else {
                 gui.updateStatus("Error: Failed to load training data");
             }
         }
+    }
+
+    //Handle add data button click
+    private void handleAddData() {
+        //Get values from the add data section
+        String ignition = gui.getNewIgnition();
+        String fuelLevel = gui.getNewFuelLevel();
+        String batteryCharged = gui.getNewBatteryCharged();
+        String oilLevel = gui.getNewOilLevel();
+        String engineRunning = gui.getNewEngineRunning();
+
+        //Add the new data point to the model
+        model.addDataPoint(ignition, fuelLevel, batteryCharged, oilLevel, engineRunning);
+
+        //Update the data count
+        int dataSize = model.getTrainingDataSize();
+        gui.updateDataCount(dataSize);
+
+        //Update status
+        gui.updateStatus("Added new data point: " + ignition + "_" + fuelLevel + "_" +
+                batteryCharged + "_" + oilLevel + " = " + engineRunning);
+
+        //Optionally recalculate probabilities immediately
+        model.calculateProbabilities();
     }
 
     //Main method to start the application

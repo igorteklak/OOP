@@ -10,7 +10,7 @@ public class PredictorModel {
     //Hardcoded probability table based on my dataset
     private Map<String, Double> combinationProbabilities;
 
-    // List to store training data
+    //List to store training data
     private List<String[]> trainingData;
 
     // Column indices
@@ -46,7 +46,7 @@ public class PredictorModel {
         combinationProbabilities.put("No_No_No_No", 0.2);
     }
 
-    // Load training data from CSV file
+    //Load training data from CSV file
     public boolean loadTrainingData(String filePath) {
         trainingData.clear();
 
@@ -61,7 +61,7 @@ public class PredictorModel {
                     continue;
                 }
 
-                //Split by tab or comma
+                //Split by tab or comma (handles both formats)
                 String[] values;
                 if (line.contains("\t")) {
                     values = line.split("\t");
@@ -76,11 +76,23 @@ public class PredictorModel {
             }
 
             return true;
-            //Catch case for errors
         } catch (IOException e) {
             System.out.println("Error loading training data: " + e.getMessage());
             return false;
         }
+    }
+
+    //Add a new data point to the training dataset
+    public void addDataPoint(String ignition, String fuelLevel, String batteryCharged,
+                             String oilLevel, String engineRunning) {
+        String[] newDataPoint = new String[5];
+        newDataPoint[IGNITION_INDEX] = ignition;
+        newDataPoint[FUEL_LEVEL_INDEX] = fuelLevel;
+        newDataPoint[BATTERY_CHARGED_INDEX] = batteryCharged;
+        newDataPoint[OIL_LEVEL_INDEX] = oilLevel;
+        newDataPoint[ENGINE_RUNNING_INDEX] = engineRunning;
+
+        trainingData.add(newDataPoint);
     }
 
     //Calculate probabilities from training data
@@ -102,10 +114,10 @@ public class PredictorModel {
             String oilLevel = row[OIL_LEVEL_INDEX];
             String engineRunning = row[ENGINE_RUNNING_INDEX];
 
-            //Create combination key
+            //Create the combination key
             String key = ignition + "_" + fuelLevel + "_" + batteryCharged + "_" + oilLevel;
 
-            //Get or create count array [yes_count, total_count]
+            //Get or create the count array [yes_count, total_count]
             int[] counts = combinationCounts.getOrDefault(key, new int[]{0, 0});
 
             //Increment counts
@@ -114,7 +126,7 @@ public class PredictorModel {
             }
             counts[1]++;
 
-            //Update map
+            //Update the map
             combinationCounts.put(key, counts);
         }
 
@@ -138,14 +150,14 @@ public class PredictorModel {
         return trainingData.size();
     }
 
-    //Get all calculated probabilities
+    // Get all calculated probabilities
     public Map<String, Double> getAllProbabilities() {
         return new HashMap<>(combinationProbabilities);
     }
 
     //Make prediction based on feature values
     public PredictionResult predict(String ignition, String fuelLevel, String batteryCharged, String oilLevel) {
-        // Create the key to look up in our probability table
+        //Create the key to look up in probability table
         String key = ignition + "_" + fuelLevel + "_" + batteryCharged + "_" + oilLevel;
 
         //Look up the probability of the engine running given these features
