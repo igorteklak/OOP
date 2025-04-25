@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.util.Map;
 
 public class PredictorGUI extends JFrame {
     //GUI components
@@ -17,20 +18,24 @@ public class PredictorGUI extends JFrame {
 
     //Button
     JButton predictButton = new JButton("Predict");
+    JButton loadFileButton = new JButton("Load Data");
+    JButton trainButton = new JButton("Train Model");
 
     //Result labels
     JLabel resultLabel = new JLabel("Prediction: ");
     JLabel probabilityLabel = new JLabel("Probability: ");
+    JLabel statusLabel = new JLabel("Status: Ready");
+    JLabel filePathLabel = new JLabel("No file loaded");
 
     public PredictorGUI() {
         // Set up the JFrame
         setTitle("Engine Predictor");
-        setSize(400, 300);
+        setSize(500, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Create panel
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(7, 2));
+        panel.setLayout(new GridLayout(10, 2));
 
         //Add components to panel
         panel.add(ignitionLabel);
@@ -53,6 +58,15 @@ public class PredictorGUI extends JFrame {
 
         panel.add(probabilityLabel);
 
+        panel.add(new JLabel("Training Data:"));
+        panel.add(filePathLabel);
+
+        panel.add(loadFileButton);
+        panel.add(trainButton);
+
+        panel.add(statusLabel);
+        panel.add(new JLabel());
+
         //Add panel to frame
         add(panel);
 
@@ -63,6 +77,15 @@ public class PredictorGUI extends JFrame {
     // Add action listener to predict button
     public void addPredictListener(ActionListener listener) {
         predictButton.addActionListener(listener);
+    }
+
+    //Add action listener to train and load file buttons
+    public void addTrainListener(ActionListener listener) {
+        trainButton.addActionListener(listener);
+    }
+
+    public void addLoadFileListener(ActionListener listener) {
+        loadFileButton.addActionListener(listener);
     }
 
     //Get values from boxes
@@ -98,4 +121,51 @@ public class PredictorGUI extends JFrame {
                 JOptionPane.INFORMATION_MESSAGE
         );
     }
+
+    public void updateStatus(String status) {
+        statusLabel.setText("Status: " + status);
+    }
+
+    //Update file path display
+    public void updateFilePath(String path) {
+        filePathLabel.setText(path);
+    }
+
+    //Show file chooser dialog
+    public String showFileChooser() {
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            return fileChooser.getSelectedFile().getAbsolutePath();
+        }
+
+        return null;
+    }
+
+    // Show probability table in popup - simplified version
+    public void showProbabilityTable(Map<String, Double> probabilities) {
+        StringBuilder tableContent = new StringBuilder();
+        tableContent.append("Probability Table:\n\n");
+
+        for (Map.Entry<String, Double> entry : probabilities.entrySet()) {
+            String key = entry.getKey();
+            double prob = entry.getValue() * 100;
+            tableContent.append(key + " = " + Math.round(prob) + "%\n");
+        }
+
+        JTextArea textArea = new JTextArea(20, 40);
+        textArea.setText(tableContent.toString());
+        textArea.setEditable(false);
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+
+        JOptionPane.showMessageDialog(
+                this,
+                scrollPane,
+                "Probabilities",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
 }
+
