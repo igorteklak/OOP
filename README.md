@@ -29,12 +29,17 @@ The testing accuracy functionality works with the use of the calculateAccuracy f
 
 Lastly the functionality of adding new data works by adding the new data to the training set and immediately updates all of the probabilities so that when a user clicks train model they are able to see a frequency table with all of the new probabilities.
 
+
+# List of functionality
+
 The total list of functionality would be: 
 Allows users to make predictions based on their inputs.
 Data management in the forms of loading data from the programs directory, real time counts of training and testing data and allows users to input new data.
 Model training which gets automatically updated with new inputs, shows users frequency table with real time probabilities, and calculates probablities.
 Accuracy testing
 Nice interface
+
+# Things I wish I could've added
 
 Some things I wish I had more time to add was a load data interface that would allow users to add more and more data through a file selecting window. I almost had this functionality in level 3 but it created a lot of problems for me when I was working on level 4. I wanted the users to be able to select files and add them to the program so that they could add files that would automatically append themselves so that the model could be trained on a lot of data and be able to test it accurately.
 
