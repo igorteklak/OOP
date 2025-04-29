@@ -5,7 +5,6 @@ import java.util.Map;
 
 public class PredictorGUI extends JFrame {
     //Prediction section components
-    JLabel titlePredictLabel = new JLabel("Predict Engine Status:");
     JLabel ignitionLabel = new JLabel("Ignition:");
     JLabel fuelLevelLabel = new JLabel("Fuel Level:");
     JLabel batteryChargedLabel = new JLabel("Battery Charged:");
@@ -18,7 +17,6 @@ public class PredictorGUI extends JFrame {
     JComboBox<String> oilLevelComboBox = new JComboBox<>(new String[]{"Yes", "No"});
 
     //Add data section components (separate from prediction)
-    JLabel titleAddDataLabel = new JLabel("Add New Data Point:");
     JLabel newIgnitionLabel = new JLabel("Ignition:");
     JLabel newFuelLevelLabel = new JLabel("Fuel Level:");
     JLabel newBatteryChargedLabel = new JLabel("Battery Charged:");
@@ -34,21 +32,22 @@ public class PredictorGUI extends JFrame {
 
     //Buttons
     JButton predictButton = new JButton("Predict");
-    JButton loadFileButton = new JButton("Load Data");
     JButton trainButton = new JButton("Train Model");
     JButton addDataButton = new JButton("Add Data");
+    JButton testAccuracyButton = new JButton("Test Accuracy");
 
-    //Result and status labels
+    //Result labels
     JLabel resultLabel = new JLabel("Prediction: ");
     JLabel probabilityLabel = new JLabel("Probability: ");
     JLabel statusLabel = new JLabel("Status: Ready");
-    JLabel filePathLabel = new JLabel("No file loaded");
-    JLabel dataCountLabel = new JLabel("Data points: 0");
+    JLabel trainingCountLabel = new JLabel("Training data: 0");
+    JLabel testingCountLabel = new JLabel("Testing data: 0");
+    JLabel accuracyLabel = new JLabel("Accuracy: Not tested");
 
     public PredictorGUI() {
         //Set up the JFrame
         setTitle("Engine Predictor");
-        setSize(650, 650);
+        setSize(800, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Create the main panel
@@ -79,7 +78,7 @@ public class PredictorGUI extends JFrame {
 
         //Data
         JPanel addDataPanel = new JPanel(new GridLayout(6, 2, 5, 5));
-        addDataPanel.setBorder(BorderFactory.createTitledBorder("Add New Data"));
+        addDataPanel.setBorder(BorderFactory.createTitledBorder("Add New Training Data"));
 
         addDataPanel.add(newIgnitionLabel);
         addDataPanel.add(newIgnitionComboBox);
@@ -97,27 +96,27 @@ public class PredictorGUI extends JFrame {
         addDataPanel.add(newEngineRunningComboBox);
 
         addDataPanel.add(addDataButton);
-        addDataPanel.add(dataCountLabel);
+        addDataPanel.add(new JPanel());
 
-        //Training
-        JPanel trainingPanel = new JPanel(new GridLayout(3, 2, 5, 5));
-        trainingPanel.setBorder(BorderFactory.createTitledBorder("Training"));
+        //Training and accuracy testing
+        JPanel datasetPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        datasetPanel.setBorder(BorderFactory.createTitledBorder("Datasets & Accuracy"));
 
-        trainingPanel.add(new JLabel("File:"));
-        trainingPanel.add(filePathLabel);
+        datasetPanel.add(trainingCountLabel);
+        datasetPanel.add(testingCountLabel);
 
-        trainingPanel.add(loadFileButton);
-        trainingPanel.add(trainButton);
+        datasetPanel.add(testAccuracyButton);
+        datasetPanel.add(accuracyLabel);
 
-        trainingPanel.add(new JLabel("Status:"));
-        trainingPanel.add(statusLabel);
+        datasetPanel.add(trainButton);
+        datasetPanel.add(statusLabel);
 
         //Add all panels to main panel
         mainPanel.add(predictionPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacing
         mainPanel.add(addDataPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacing
-        mainPanel.add(trainingPanel);
+        mainPanel.add(datasetPanel);
 
         //Add main panel to frame
         add(new JScrollPane(mainPanel));
@@ -135,12 +134,12 @@ public class PredictorGUI extends JFrame {
         trainButton.addActionListener(listener);
     }
 
-    public void addLoadFileListener(ActionListener listener) {
-        loadFileButton.addActionListener(listener);
-    }
-
     public void addAddDataListener(ActionListener listener) {
         addDataButton.addActionListener(listener);
+    }
+
+    public void addTestAccuracyListener(ActionListener listener) {
+        testAccuracyButton.addActionListener(listener);
     }
 
     //Get values from prediction dropdown boxes
@@ -187,6 +186,17 @@ public class PredictorGUI extends JFrame {
         probabilityLabel.setText("Probability: " + Math.round(probability * 100) + "%");
     }
 
+    //Update accuracy display
+    public void updateAccuracy(int correct, int total, double percentage) {
+        accuracyLabel.setText(String.format("Accuracy: %d/%d (%.2f%%)", correct, total, percentage));
+    }
+
+    //Update data counts
+    public void updateDataCounts(int trainingCount, int testingCount) {
+        trainingCountLabel.setText("Training data: " + trainingCount);
+        testingCountLabel.setText("Testing data: " + testingCount);
+    }
+
     //Show popup with result
     public void showResultPopup(String prediction, double probability) {
         JOptionPane.showMessageDialog(
@@ -198,36 +208,23 @@ public class PredictorGUI extends JFrame {
         );
     }
 
+    //Show accuracy test result popup
+    public void showAccuracyPopup(int correct, int total, double percentage) {
+        JOptionPane.showMessageDialog(
+                this,
+                String.format("Accuracy Test Results:\n\n" +
+                                "Correct predictions: %d\n" +
+                                "Total test cases: %d\n" +
+                                "Accuracy: %.2f%%",
+                        correct, total, percentage),
+                "Accuracy Test Results",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
     //Update status display
     public void updateStatus(String status) {
         statusLabel.setText(status);
-    }
-
-    //Update file path display
-    public void updateFilePath(String path) {
-        if (path.length() > 30) {
-            // If path is too long, show only beginning and end
-            path = path.substring(0, 15) + "..." +
-                    path.substring(path.length() - 15);
-        }
-        filePathLabel.setText(path);
-    }
-
-    //Update data count
-    public void updateDataCount(int count) {
-        dataCountLabel.setText("Data points: " + count);
-    }
-
-    //Show file chooser dialog
-    public String showFileChooser() {
-        JFileChooser fileChooser = new JFileChooser();
-        int result = fileChooser.showOpenDialog(this);
-
-        if (result == JFileChooser.APPROVE_OPTION) {
-            return fileChooser.getSelectedFile().getAbsolutePath();
-        }
-
-        return null;
     }
 
     //Show probability table in popup

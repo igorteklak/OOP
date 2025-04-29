@@ -4,7 +4,6 @@ import java.awt.event.ActionListener;
 public class Control implements ActionListener {
     private final PredictorModel model;
     private final PredictorGUI gui;
-    private String trainingFilePath;
 
     public Control() {
         //Initialize the model and GUI
@@ -14,8 +13,20 @@ public class Control implements ActionListener {
         //Set up the action listeners
         gui.addPredictListener(this);
         gui.addTrainListener(this);
-        gui.addLoadFileListener(this);
         gui.addAddDataListener(this);
+        gui.addTestAccuracyListener(this);
+
+        updateDataCounts();
+    }
+
+    //Update the GUI with current data counts
+    private void updateDataCounts() {
+        gui.updateDataCounts(model.getTrainingDataSize(), model.getTestingDataSize());
+
+        if (model.getTrainingDataSize() > 0 || model.getTestingDataSize() > 0) {
+            gui.updateStatus("Data loaded: " + model.getTrainingDataSize() +
+                    " training, " + model.getTestingDataSize() + " testing");
+        }
     }
 
     @Override
@@ -24,10 +35,10 @@ public class Control implements ActionListener {
             handlePredict();
         } else if (e.getSource() == gui.trainButton) {
             handleTrain();
-        } else if (e.getSource() == gui.loadFileButton) {
-            handleLoadFile();
         } else if (e.getSource() == gui.addDataButton) {
             handleAddData();
+        } else if (e.getSource() == gui.testAccuracyButton) {
+            handleTestAccuracy();
         }
     }
 
@@ -57,7 +68,7 @@ public class Control implements ActionListener {
 
     //Handle train button click
     private void handleTrain() {
-        if (trainingFilePath == null && model.getTrainingDataSize() == 0) {
+        if (model.getTrainingDataSize() == 0) {
             gui.updateStatus("Error: No training data loaded or added");
             return;
         }
@@ -70,7 +81,7 @@ public class Control implements ActionListener {
         if (success) {
             int dataSize = model.getTrainingDataSize();
             gui.updateStatus("Model trained successfully with " + dataSize + " data points");
-            gui.updateDataCount(dataSize);
+            updateDataCounts();
 
             //Show probability table
             gui.showProbabilityTable(model.getAllProbabilities());
@@ -79,50 +90,52 @@ public class Control implements ActionListener {
         }
     }
 
-    //Handle load file button click
-    private void handleLoadFile() {
-        String filePath = gui.showFileChooser();
-
-        if (filePath != null) {
-            trainingFilePath = filePath;
-            gui.updateFilePath(filePath);
-            gui.updateStatus("Loading training data...");
-
-            //Load training data
-            boolean success = model.loadTrainingData(filePath);
-
-            if (success) {
-                int dataSize = model.getTrainingDataSize();
-                gui.updateStatus("Loaded " + dataSize + " training data points");
-                gui.updateDataCount(dataSize);
-            } else {
-                gui.updateStatus("Error: Failed to load training data");
-            }
-        }
-    }
-
     //Handle add data button click
     private void handleAddData() {
-        //Get values from the add data section
+        //Get the values from the add data section
         String ignition = gui.getNewIgnition();
         String fuelLevel = gui.getNewFuelLevel();
         String batteryCharged = gui.getNewBatteryCharged();
         String oilLevel = gui.getNewOilLevel();
         String engineRunning = gui.getNewEngineRunning();
 
-        //Add the new data point to the model
-        model.addDataPoint(ignition, fuelLevel, batteryCharged, oilLevel, engineRunning);
+        //Add the new data point to the training data
+        model.addDataPoint(ignition, fuelLevel, batteryCharged, oilLevel, engineRunning, true);
 
-        //Update the data count
-        int dataSize = model.getTrainingDataSize();
-        gui.updateDataCount(dataSize);
+        //Update the data counts
+        updateDataCounts();
 
         //Update status
-        gui.updateStatus("Added new data point: " + ignition + "_" + fuelLevel + "_" +
+        gui.updateStatus("Added new data point to training dataset: " +
+                ignition + "_" + fuelLevel + "_" +
                 batteryCharged + "_" + oilLevel + " = " + engineRunning);
+    }
 
-        //Optionally recalculate probabilities immediately
-        model.calculateProbabilities();
+    //Handle test accuracy button click
+    private void handleTestAccuracy() {
+        if (model.getTestingDataSize() == 0) {
+            gui.updateStatus("Error: No testing data available");
+            return;
+        }
+
+        gui.updateStatus("Testing model accuracy...");
+
+        //Calculate accuracy
+        PredictorModel.AccuracyResult result = model.calculateAccuracy();
+
+        //Update the GUI
+        gui.updateAccuracy(result.getCorrectPredictions(), result.getTotalPredictions(),
+                result.getAccuracyPercentage());
+
+        //Show popup
+        gui.showAccuracyPopup(result.getCorrectPredictions(), result.getTotalPredictions(),
+                result.getAccuracyPercentage());
+
+        //Update status
+        gui.updateStatus(String.format("Accuracy: %.2f%% (%d/%d correct)",
+                result.getAccuracyPercentage(),
+                result.getCorrectPredictions(),
+                result.getTotalPredictions()));
     }
 
     //Main method to start the application
