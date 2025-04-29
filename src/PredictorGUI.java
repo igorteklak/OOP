@@ -48,7 +48,7 @@ public class PredictorGUI extends JFrame {
     public PredictorGUI() {
         //Set up the JFrame
         setTitle("Engine Predictor");
-        setSize(500, 650);
+        setSize(650, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Create the main panel
